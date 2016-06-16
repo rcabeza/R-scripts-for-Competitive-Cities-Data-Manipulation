@@ -1,0 +1,27 @@
+---
+title: "Getting_founder_from_startups"
+output: html_document
+---
+
+
+The basics
+```{r cars}
+
+library(rjson)
+
+#NOTE rjson's 'fromJSON' method works best for this
+#if running jsonlite, may need to detach, and load rjson
+
+url <- 'https://api.angel.co/1/startup_roles?v=1&startup_id=1083851&role=founder&access_token=1be911c0e97dfeffb93e8e113eea82a25f32cf6e415625fc'
+
+test_from_url <- fromJSON(file =url)
+
+```
+
+function outline:
+
+1) get the startup_ids from a data set (probably another dataframe)
+2) put all startup_ids in a vector
+3) iterate through the vector and save the resultant file to a directory
+4) use the algorithm in the "Angel list manipulation JSON.RMD" to iterate through
+the directory and load the founders information into a dataframe

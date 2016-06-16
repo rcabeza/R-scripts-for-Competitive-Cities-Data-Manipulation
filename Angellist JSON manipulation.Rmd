@@ -1,0 +1,366 @@
+---
+title: "Converting WB Data"
+output: html_document
+---
+
+```{r cars}
+setwd("C:/Users/wb413533/Box Sync/Competitive Cities (Non-shared Working Copies)/Datasources for Updating Master Dataset/WDI_csv")
+
+all_WB_data <- read.csv('WDI_Data.csv', header = TRUE, na.strings = "")
+
+
+names(all_WB_data)
+
+summary(all_WB_data$x2012)
+
+str(all_WB_data)
+
+head(all_WB_data)
+
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+setwd("C:/Users/wb413533/Downloads")
+#loading some json
+library(jsonlite)
+library(RJSONIO)
+library(rjson)
+
+founders_data <- fromJSON("479646_founders.json")
+JsonData <- fromJSON(file = "196809_founders.json" )
+thirdfounder <- fromJSON(file = "728857_founders.json")
+
+names(lapply(thirdfounder[[2]][[2]],print))
+
+
+length(JsonData[[2]])
+
+
+
+lapply(JsonData[[2]],print)
+
+
+lapply(JsonData[[2]][[1]],print)
+
+
+university_search <- function(script, key_word){
+  script_length <- nchar(script)
+  key_word_add <- nchar(key_word)-1
+  appearance_number <- 0
+  for (i in 1:script_length){
+    if((i + key_word_add <= script_length) & (substr(script,i,i+ key_word_add) == key_word)){
+      appearance_number <- appearance_number + 1
+    }
+    
+  }
+  if(appearance_number > 0){
+    return ("Went to University")
+  }
+}
+
+university_search("hello hello asd;lfkja;ldskf","hello")
+
+substr("hello hello asd;lfkja;ldskf",7,11) == "hello"
+
+nchar("hello")-1
+
+
+
+#role, founder, ended, started_at, type, id, image, angellist_url, follower_count, bio,id, community_profile, thum_url, logo_url, high_concept, created_at, product_desc, community_profile, quality 
+
+for(file in example_files){
+  print (file)
+}
+
+```
+
+
+
+Testing basic looping with lists on the founders' information
+```{r}
+
+#rm(list = ls())
+setwd("C:/Users/wb413533/Box Sync/Competitive Cities (Non-shared Working Copies)/startups")
+library(jsonlite)
+library(RJSONIO)
+library(rjson)
+
+
+list_founders <- list.files()
+
+test_list <- list_founders[1:10]
+
+
+load_lists <- function(list_of_names){
+    number_of_lists <- length(list_of_names)
+    array_of_lists <- list()
+    for(name in list_of_names){
+      temp_founder <- fromJSON(file = name)
+      array_of_lists <- c(array_of_lists, list(temp_founder))
+    
+    }
+
+  return(array_of_lists)
+
+}
+
+example_lists <- load_lists(test_list)
+
+#so now to access info about founder use:
+#example_lists[[1]][[2]][[1]][[4]]
+#founder bio: example_lists[[1]][[2]][[1]][[4]][[7]]
+
+
+#startup info: example_lists[[1]][[2]][[1]][[8]]
+#high concept... example_lists[[1]][[2]][[1]][[8]][[14]]
+
+
+#How many don't have information on founders, etc.
+
+total_lists <- load_lists(list_founders)
+
+check_founder_info <- function(founders){
+  total_number_of_companies <- length(founders)
+  number_with_info <- 0
+  index_with_info <- numeric()
+  for(idx in 1:total_number_of_companies){
+    if(length(founders[[idx]][[2]]) >0){
+      number_with_info <- number_with_info + 1
+      index_with_info <- c(index_with_info, idx)
+    }
+  
+  }
+  return(index_with_info)
+}
+
+print (check_founder_info(total_lists)) #7003!
+
+founders_with_info <- check_founder_info(total_lists)
+
+7003/10875
+
+check_if_advisor <- function(founders){
+  total_number_of_companies <- length(founders)
+  number_advisors <- 0
+  for(idx in 1:total_number_of_companies){
+    if(founders[[idx]][[1]] > 0 & founders[[idx]][[1]] == length(founders[[idx]][[2]])){
+      for(jdx in 1:founders[[idx]][[1]]){
+          if(founders[[idx]][[2]][[jdx]][[1]] == "advisor" ){
+          number_advisors <- number_advisors + 1
+          print (number_advisors)
+          }
+      }
+    }
+  
+  }
+  return(number_advisors)
+}
+
+check_if_advisor(total_lists)
+
+#checking how many files have a mnumber of founders, but has no details about the company/founders
+check_gaps <- function(founders){
+  total_number_of_companies <- length(founders)
+  number_gaps <- 0
+  index_gaps <- numeric()
+  for(idx in 1:total_number_of_companies){
+    if(founders[[idx]][[1]] > 0){
+      if(length(founders[[idx]][[2]])==0){
+          number_gaps <- number_gaps + 1
+          index_gaps <- c(index_gaps, idx)
+      }
+    }
+  
+  }
+  return(number_gaps)
+}
+
+print (check_gaps(total_lists)) #2480 json files has some founders listed, but no detailed informatoin
+
+
+#checking Education file
+
+check_education <- function(founders){
+  total_number_of_companies <- length(founders)
+  id_row_num <- 0
+  id_vector <- numeric()
+  education <- numeric()
+  for(idx in 1:total_number_of_companies){
+    if(founders[[idx]][[1]] > 0){
+      if(length(founders[[idx]][[2]]) !=0){
+          for(jdx in 1:length(founders[[idx]][[2]])){
+            if(!is.null(founders[[idx]][[2]][[jdx]][[4]][[7]])){
+              if(grepl("College", founders[[idx]][[2]][[jdx]][[4]][[7]])){
+                id_vector <- c(id_vector,founders[[idx]][[2]][[jdx]][[4]][[3]])
+                }
+              }
+          }
+      }
+    }
+  
+  }
+  return(id_vector)
+}
+
+print (check_education(total_lists))
+
+
+
+
+test_load <- fromJSON(file = "1000047_founders.json")
+
+empty_list <- list()
+
+get_roles <- function(founders){
+  total_number_of_companies <- length(founders)
+  roles <- character()
+  for(idx in 1:total_number_of_companies){
+    if(founders[[idx]][[1]] > 0 & founders[[idx]][[1]] == length(founders[[idx]][[2]])){
+      for(jdx in 1:founders[[idx]][[1]]){
+          roles <- c(roles, founders[[idx]][[2]][[jdx]][[1]])
+      }
+    }
+  
+  }
+  return(roles)
+}
+
+print(get_roles(total_lists))
+
+```
+
+
+Extracting Founders' Data from Json Files
+```{r}
+
+#obtaining founder_data form one file. Using Once tested with one file, 
+#will iterate through all of the folders and files in the fodler
+
+json_string_founder <- read_file("63_founders.json")
+
+
+test_founder <- fromJSON(file = "63_founders.json")
+
+
+temp_part <- json_string_founder%>%
+  enter_object('startup_roles')%>%
+  gather_array%>%
+  spread_values(role = jstring('role'), merge_id = jnumber('id'))%>%
+  enter_object('tagged')%>%
+  spread_values(founder_name = jstring('name'), founder_id = jnumber('id'), 
+                founder_follower = jnumber('follower_count'),
+                bio = jstring('bio'))
+
+temp_part2 <- json_string_founder%>%
+   enter_object('startup_roles')%>%
+   gather_array%>%
+   spread_values(role = jstring('role'), merge_id =jnumber('id'))%>%
+   enter_object('startup')%>%
+   spread_values(startup_id = jnumber('id'))
+
+founder_info <- right_join(temp_part, temp_part2, by = c('merge_id'))
+names(founder_info)
+final_output <- founder_info%>%
+  select(startup_id,founder_name,founder_id,founder_followers,bio)
+
+
+```
+
+```{r}
+
+
+#just set the appropriate working directory that has all of the founder info, and then run the function below
+#no inputs necessar, the first lines will obtain the names of folders and the names of the files
+
+#takes about 45 minutes to run...
+founder_company_connection <- function(){
+  
+  vector_of_json_files <- list.files()
+  founder_data_frame <- data.frame(startup_id =numeric(),
+                 founder_name = character(),
+                 founder_id = numeric(),
+                 founder_followers = numeric(),
+                 bio =character())
+  
+  for(temp_json in vector_of_json_files){
+    temp_founder_1 <- temp_json%>%
+      enter_object('startup_roles')%>%
+      gather_array%>%
+      spread_values(role = jstring('role'), merge_id = jnumber('id'))%>%
+      enter_object('tagged')%>%
+      spread_values(founder_name = jstring('name'), founder_id = jnumber('id'), 
+                    founder_followers = jnumber('follower_count'),
+                    bio = jstring('bio'))
+
+    temp_founder_2 <- temp_json%>%
+      enter_object('startup_roles')%>%
+      gather_array%>%
+      spread_values(role = jstring('role'), merge_id =jnumber('id'))%>%
+      enter_object('startup')%>%
+      spread_values(startup_id = jnumber('id'))
+
+    founder_info <- right_join(temp_founder_1, temp_founder_2, by = c('merge_id'))
+    final_output <- founder_info%>%
+      select(startup_id,founder_name,founder_id,founder_followers,bio)
+    
+    founder_data_frame <- rbind(founder_data_frame, final_output)
+  }
+  return(founder_data_frame)
+}
+
+all_available_founders <- founder_company_connection()
+
+#setwd(....) 
+
+#Need to resetworking directory to the appropriate place. The previous function changed
+#the working directory as necessary.
+write.csv(all_available_founders,"founder_info.csv")
+
+
+```
+
+Structure: list of 5 lists
+[[1]] - Total number of founders
+[[2]] - Startup_roles - contains info on founders
+  [[1]] - List of 9 variables about first founder
+    [[1]] - role
+    [[2]] - ended_at
+    [[3]] - started_at
+    [[4]] - info about first founder (7 variables)
+      [[1]] - name
+      [[2]] - type
+      [[3]] - id
+      [[4]] - image
+      [[5]] - angellist_url
+      [[6]] - follower_count
+      [[7]] - bio
+    [[5]] - id
+    [[6]] - title
+    [[7]] - confirmed
+    [[8]] - info about the startup (14 variables)
+      [[1]] - hidden
+      [[2]] - created_at
+      [[3]] - id
+      [[4]] - follower_count
+      [[5]] - quality
+      [[6]] - name
+      [[7]] - updated_at
+      [[8]] - company_url
+      [[9]] - community_profile
+      [[10]] - product_desc
+      [[11]] - thumb_url
+      [[12]] - angellist_url
+      [[13]] - logo_url
+      [[14]] - high_concept
+    [[9]] - created_at    
+  [[2]] - List of 9 variables about second founder
+    ......
+[[3]] - page
+[[4]] - per_page
+[[5]] - last_page
+

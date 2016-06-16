@@ -1,0 +1,382 @@
+---
+title: "investors"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This is the Rmd file for Extracting the Startup Information from all of the JSON files
+that correspond to all of the cities
+```{r}
+#setwd("C:/Users/wb413533/Box Sync/Competitive Cities (Non-shared Working Copies)/angelco/startups+investors/1644")
+library(jsonlite)
+library(RJSONIO)
+library(rjson)
+library(tidyjson)
+library(readr)
+library(dplyr)
+
+#function to load json files in a folder into a list
+entrepreneur_raw_data <- list.files()
+
+load_lists <- function(list_of_names){
+    number_of_lists <- length(list_of_names)
+    array_of_lists <- list()
+    for(name in list_of_names){
+      temp_founder <- fromJSON(file = name)
+      array_of_lists <- c(array_of_lists, list(temp_founder))
+    
+    }
+
+  return(array_of_lists)
+
+}
+
+entr_list <- load_lists(entrepreneur_raw_data)
+
+#Test looping and printing the answers to a startups
+#note: would change the third variable entr[[i]][[3]][[VARIABLE]] to iterate over the pages
+#just looping through the first value of the pages for illustrative purposes
+variable_iteration_first_entrepreneur <- function (list_of_entrs){for(i in 1:length(list_of_entrs)){
+  if(list_of_entrs[[i]][[3]][[1]][[1]] != TRUE || length(list_of_entrs[[i]][[3]][[1]][[1]]) == 0){
+  print(list_of_entrs[[i]][[3]][[1]][[17]])
+    }
+  }
+}
+
+variable_iteration_first_entrepreneur(entr_list)
+
+setwd("C:/Users/wb413533/Box Sync/Competitive Cities (Non-shared Working Copies)/angelco/startups+investors/1664")
+
+ent_1664 <- list.files()
+entr_list_1664 <- load_lists(ent_1664)
+
+variable_iteration_first_entrepreneur(entr_list_1664)
+
+iter_test <- function(list_of_entrs){
+  for(i in 1:31){
+    print(length(entr_list_1664[[i]][[3]][[1]]))
+  }
+}
+
+
+tjson_test <- entr_list_1664[1:5]
+ttest <- tjson_test[[2]][[3]][[1]]
+
+str(ttest)
+```
+
+
+Example of loading informationg Startups into a table formate from JSON
+```{r}
+
+#chose random raw json and read as a character
+
+json_string <- read_file("startup98.json")
+
+#transforming one 
+tidy_test1 <- json_string%>%
+  enter_object('startups')%>%
+  gather_array%>%
+  spread_values(startup_id = jnumber('id'), name = jstring('name'), 
+                high_concept = jstring('high_concept'), follower_count =jnumber('follower_count'),
+                company_size = jstring('company_size'), product_desc = jstring('product_desc'))%>%
+  enter_object('company_type')%>%
+  gather_array%>%
+  spread_values(company_type = jstring('display_name'),company_type_id = jnumber('id'))
+
+tidy_test2 <- json_string%>%
+  enter_object('startups')%>%
+  gather_array%>%
+  spread_values(startup_id = jnumber('id'), name = jstring('name'), 
+                high_concept = jstring('high_concept'), follower_count =jnumber('follower_count'),
+                company_size = jstring('company_size'))%>%
+  enter_object('markets')%>%
+  gather_array%>%
+  spread_values(markets = jstring('display_name'), market_id = jnumber('id'))
+
+tidy_test3 <- json_string%>%
+  enter_object('startups')%>%
+  gather_array%>%
+  spread_values(startup_id = jnumber('id'), name = jstring('name'), 
+                high_concept = jstring('high_concept'), follower_count =jnumber('follower_count'),
+                company_size = jstring('company_size'), twitter_url = jstring('twitter_url'), 
+                company_url = jstring('company_url'), facebook_url = jstring('facebook_url'),
+                linkedin_url = jstring('linkedin_url'),
+                crunchbase_url = jstring('crunchbase_url'),
+                angellist_url = jstring('angellist_url'),
+                blog_url = jstring('blog_url'))%>%
+  enter_object('locations')%>%
+  gather_array%>%
+  spread_values(Locations = jstring('display_name'), location_id = jnumber('id'))
+
+tiy_test_output_part1 <- right_join(tidy_test1, tidy_test2, by = c('startup_id','name','high_concept'))
+tiy_test_output_part2 <- right_join(tiy_test_output_part1, tidy_test3, by = c('startup_id','name','high_concept'))
+
+names(tiy_test_output_part2)
+
+final_output <- tiy_test_output_part2%>%
+  select(startup_id, name, high_concept,follower_count,company_size, product_desc, company_type, company_type_id,
+         company_size,markets, market_id, Locations, location_id,
+         company_url, linkedin_url, crunchbase_url, angellist_url, blog_url)
+
+names(final_output)
+df <- data.frame(startup_id =numeric(),
+                 name = character(),
+                 high_concept = character(),
+                 follower_count = numeric(),
+                 company_size = character(),
+                 product_desc = character(),
+                 company_type = character(),
+                 company_type_id = numeric(),
+                 markets = character(),
+                 market_id = numeric(),
+                 Locations =character(),
+                 location_id = numeric(),
+                 company_url = character(),
+                 linkedin_url = character(),
+                 crunchbase_url = character(),
+                 angellist_url =character(),
+                 blog_url = character())
+
+bound <- rbind(final_output, df)
+
+str(final_output)
+
+
+markets_count <- tiy_test_output%>%
+  group_by(company_type)%>%
+  summarise(market_count = n())%>%
+  arrange(desc(market_count))
+  
+write.csv(tiy_test_output_part2, file="output.csv")
+
+
+
+for(i in 1:50){
+  if(length(example_list[[3]][[i]]) > 2){
+  print(example_list[[3]][[i]][[17]])}
+}
+
+```
+to access geographic information:
+entr_list_1664[[2]][[3]][[2]][[16]]
+then use the tags name, display_name, id
+e.g. for nyc
+
+entr_list_1664[[2]][[3]][[2]][[16]]$display_name gives
+
+"New York City"
+
+
+```{r}
+
+setwd("C:/Users/wb413533/Box Sync/Competitive Cities (Non-shared Working Copies)/angelco/startups+investors")
+
+json_transformation <- function(){
+  #must start from the base folder....
+  folder_names <- list.files()
+  base_folder <- getwd()
+  big_data_frame <- data.frame(startup_id =numeric(),
+                 name = character(),
+                 high_concept = character(),
+                 follower_count = numeric(),
+                 company_size = character(),
+                 product_desc = character(),
+                 company_type = character(),
+                 company_type_id = numeric(),
+                 markets = character(),
+                 market_id = numeric(),
+                 Locations =character(),
+                 location_id = numeric(),
+                 company_url = character(),
+                 linkedin_url = character(),
+                 crunchbase_url = character(),
+                 angellist_url =character(),
+                 blog_url = character())
+  #for the inner loop, it appears that tidyjson, reads the string "startup1.json" in the folder is
+  #so no need for json_string <- read_file("startup98.json")
+  #probably good practice to put it in the future....
+
+  for(folder in folder_names){ 
+    city_folder <- paste(base_folder,"/",folder,sep ="")
+    setwd(city_folder)
+    vector_of_json_files <- list.files()
+   for(temp_json in vector_of_json_files){
+      part1 <- temp_json%>%
+        enter_object('startups')%>%
+        gather_array%>%
+        spread_values(startup_id = jnumber('id'), name = jstring('name'), 
+                     high_concept = jstring('high_concept'), follower_count =jnumber('follower_count'),
+                     company_size = jstring('company_size'), product_desc = jstring('product_desc'))%>%
+        enter_object('company_type')%>%
+        gather_array%>%
+        spread_values(company_type = jstring('display_name'),company_type_id = jnumber('id'))
+
+      part2 <- temp_json%>%
+        enter_object('startups')%>%
+        gather_array%>%
+        spread_values(startup_id = jnumber('id'), name = jstring('name'), 
+                        high_concept = jstring('high_concept'), follower_count =jnumber('follower_count'),
+                      company_size = jstring('company_size'))%>%
+        enter_object('markets')%>%
+        gather_array%>%
+        spread_values(markets = jstring('display_name'), market_id = jnumber('id'))
+
+      part3 <- temp_json%>%
+        enter_object('startups')%>%
+        gather_array%>%
+        spread_values(startup_id = jnumber('id'), name = jstring('name'), 
+                      high_concept = jstring('high_concept'), follower_count =jnumber('follower_count'),
+                      company_size = jstring('company_size'), twitter_url = jstring('twitter_url'), 
+                     company_url = jstring('company_url'), facebook_url = jstring('facebook_url'),
+                     linkedin_url = jstring('linkedin_url'),
+                     crunchbase_url = jstring('crunchbase_url'),
+                      angellist_url = jstring('angellist_url'),
+                      blog_url = jstring('blog_url'))%>%
+        enter_object('locations')%>%
+        gather_array%>%
+        spread_values(Locations = jstring('display_name'), location_id = jnumber('id'))
+
+      temp_output_1 <- right_join(part1, part2, by = c('startup_id','name','high_concept'))
+      final_temp_output <- right_join(temp_output_1, part3, by = c('startup_id','name','high_concept'))
+
+      final_output <- final_temp_output%>%
+        select(startup_id, name, high_concept,follower_count,company_size, product_desc, company_type, company_type_id,
+              company_size,markets, market_id, Locations, location_id,
+              company_url, linkedin_url, crunchbase_url, angellist_url, blog_url)
+
+      big_data_frame <- rbind(big_data_frame, final_output)
+      }
+
+  }
+  return(big_data_frame)
+}
+
+test_big_frame <- json_transformation()
+
+write.csv(test_big_frame,"first_20_cities_ent_data.csv")
+
+names(test_big_frame)
+market_type_counting <- test_big_frame%>%
+  group_by(markets)%>%
+  summarise(mentions = n())%>%
+  arrange(desc(mentions))
+write.csv(market_type_counting, "market_type_wordmap_data.csv")
+
+
+#Getting some basic keywords from the big data frame after it has been transformed from JSON
+#into a data frame, using dplyr
+markets_by_city <- test_big_frame%>%
+  group_by(markets,Locations,location_id)%>%
+  summarise(mentions = n())%>%
+  arrange(desc(mentions),Locations)
+
+total_city_mentions <- test_big_frame%>%
+  group_by(Locations)%>%
+  summarise(total_mentions = n())%>%
+  arrange(desc(total_mentions))
+
+markets_by_city <- right_join(markets_by_city, total_city_mentions, by = 'Locations')
+
+markets_by_city$percent_of_mentions <- markets_by_city$mentions/markets_by_city$total_mentions  
+write.csv(markets_by_city, "markets_by_city.csv")
+
+
+market_by_city_alt <- test_big_frame%>%
+  group_by(Locations, markets)%>%
+  summarise(mentions = n())%>%
+  arrange(desc(mentions), Locations)
+write.csv(market_by_city_alt, "markets_by_city_less_names")
+company_type_counting <- test_big_frame%>%
+  group_by(company_type)%>%
+  summarise(mentions = n())%>%
+  arrange(desc(mentions))
+
+
+second_summarize <- test_big_frame%>%
+  arrange(startup_id)
+
+```
+
+
+Merging the Founders' Information with the Startup Information
+```{r}
+
+#note that the all_available_founder data frame was extracted from
+#the 'Extracting Founders' Data.Rmd' code
+
+founders_and_startups_large_dataset <- right_join(all_available_founders,test_big_frame, by =c('startup_id'))
+names(founders_and_startups_large_dataset)
+
+founders_starters_5122016 <- founders_and_startups_large_dataset%>%
+  select(startup_id,name, high_concept,follower_count, company_size, product_desc, company_type, company_type_id,markets,market_id,Locations,
+         location_id, founder_name,founder_id, founder_followers, bio, company_url, linkedin_url, crunchbase_url,angellist_url,blog_url)
+
+write.csv(founders_starters_5122016,"founders_startups_info")
+```
+
+
+Some anlaysis of the cities that contain a lot of startups that include
+SaaS in the 'markets' category
+```{r}
+#
+length(unique(test_big_frame$startup_id))
+#among 41094 different startups across 20 cities, we did a word map on the types of markets that startups are servicing:
+
+
+
+SaaS_companies <- test_big_frame[test_big_frame$markets == "SaaS",]
+
+number_of_SaaS_startups <- length(unique(SaaS_companies$startup_id))
+
+number_of_SaaS_startups
+
+SaaS_startups_cities <- unique(SaaS_companies$Locations)
+SaaS_startups_cities
+
+Saas_by_city <- SaaS_companies%>%
+  group_by(Locations)%>%
+  summarise(total = n())%>%
+  arrange(desc(total))
+
+```
+Structure of the Data:
+
+    a)page [from 1 to like 400]
+    b)total number of startups covered
+    c)startup information in a page (50 per each file)
+          1)'blog_url'
+          2)'company_type'
+          3)'markets'
+          4)'created_at'
+          5)'quality'
+          6)'twitter_url'
+          7)'company_url'
+          8)'product_desc'
+          9)'angellist_url'
+          10)'follower_count'
+          11)'high_concept'
+          12)'hidden'
+          13)'screenshots'
+          14)'id'
+          15)'status'
+          16)'locations'
+          17)'linkedin_url'
+          18)'video_url'
+          19)'name'
+          20)'crunbase_url'
+          21)'company_size'
+          22)'community_profile'
+          23)'update_at'
+          24)'thum_url'
+          25)'logo_url'
+          26)'facebook_url'
+    d) startups per page
+    e) actual age
+
+Things to find out:
+how many markets tags can there be?
+how many locations tags can there be?

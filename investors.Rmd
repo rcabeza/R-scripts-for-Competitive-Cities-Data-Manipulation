@@ -1,0 +1,168 @@
+---
+title: "investors"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Extractung Investors' Data in json.
+```{r}
+
+#Exploring the data:
+library(jsonlite)
+library(RJSONIO)
+library(rjson)
+library(tidyjson)
+library(readr)
+library(dplyr)
+
+example_entr <- fromJSON(file = "1.json")
+names(example_entr)
+
+json_inv_example <- read_file("1.json")
+
+tidying_up_1 <- json_inv_example%>%
+  enter_object('users')%>%
+  gather_array%>%
+  spread_values(investor_name = jstring('name'), investor_id = jnumber('id'),investor_bio = jstring('bio'),
+                github_url = jstring('github_url'), what_ive_built = jstring('what_ive_built'),
+                what_investor_does = jstring('what_i_do'), online_bio_url = jstring('online_bio_url'),
+                resume_url = jstring('resume_url'),follower_count = jnumber('follower_count'))%>%
+  enter_object('locations')%>%
+  gather_array%>%
+  spread_values(investor_location = jstring('display_name'), investor_location_id = jnumber('id'))
+
+tidying_up_2 <- json_inv_example%>%
+  enter_object('users')%>%
+  gather_array%>%
+  spread_values(investor_name = jstring('name'), investor_id= jnumber('id'),investor_bio = jstring('bio'),
+                github_url = jstring('github_url'), what_ive_built = jstring('what_ive_built'),
+                what_investor_does = jstring('what_i_do'), online_bio_url = jstring('online_bio_url'),
+                resume_url = jstring('resume_url'),follower_count = jnumber('follower_count'))%>%
+  enter_object('roles')%>%
+  gather_array%>%
+  spread_values(investor_role = jstring('display_name'), inv_role_id = jnumber('id'))
+
+tidying_up_3 <- json_inv_example%>%
+  enter_object('users')%>%
+  gather_array%>%
+  spread_values(investor_name = jstring('name'), investor_id = jnumber('id'),investor_bio = jstring('bio'),
+                github_url = jstring('github_url'), what_ive_built = jstring('what_ive_built'),
+                what_investor_does = jstring('what_i_do'), online_bio_url = jstring('online_bio_url'),
+                resume_url = jstring('resume_url'),follower_count = jnumber('follower_count'),
+                investor_facebook = jstring('facebook_url'), investor_twitter = jstring('twitter_url'))%>%
+  enter_object('skills')%>%
+  gather_array%>%
+  spread_values(investor_skill = jstring('display_name'), invest_skill_id = jnumber('id'))
+
+
+test_output_part1 <- right_join(tidying_up_1, tidying_up_2, by = c('investor_id','investor_name'))
+test_output_part2 <- right_join(test_output_part1, tidying_up_3, by = c('investor_id','investor_name'))
+names(test_output_part2)
+
+final_output <- test_output_part2%>%
+  select(investor_name, investor_id, investor_bio, what_ive_built,what_investor_does,online_bio_url, resume_url, 
+         follower_count, investor_location,
+         investor_location_id, investor_role, inv_role_id,investor_skill, invest_skill_id,github_url, investor_facebook,
+         investor_twitter)
+```
+
+
+#choose the appropriate director that contains folders that have investor-level data
+```{r}
+
+
+#looping through all folders and json files and running the above code to get the data frame
+
+
+investor_transformation <- function(){
+  #must start from the base folder....
+  folder_names <- list.files()
+  base_folder <- getwd()
+  investor_data_frame <- data.frame(investor_name = character(),
+                 investor_id = numeric(),
+                 investor_bio = character(),
+                 what_ive_built = character(),
+                 what_investor_does = numeric(),
+                 online_bio_url = character(),
+                 resume_url = character(),
+                 follower_count = character(),
+                 investor_location = numeric(),
+                 investor_location_id = character(),
+                 investor_role = numeric(),
+                 inv_role_id =character(),
+                 investor_skill = numeric(),
+                 invest_skill_id = character(),
+                 github_url = character(),
+                 investor_facebook = character(),
+                 investor_twitter = character())
+  #for the inner loop, it appears that tidyjson, reads the string "startup1.json" in the folder is
+  #so no need for json_string <- read_file("startup98.json")
+  #probably good practice to put it in the future....
+
+  for(folder in folder_names){ 
+    city_folder <- paste(base_folder,"/",folder,sep ="")
+    setwd(city_folder)
+    vector_of_json_files <- list.files()
+   for(temp_json in vector_of_json_files){
+     part1 <- temp_json%>%
+      enter_object('users')%>%
+      gather_array%>%
+      spread_values(investor_name = jstring('name'), investor_id = jnumber('id'),investor_bio = jstring('bio'),
+                    github_url = jstring('github_url'), what_ive_built = jstring('what_ive_built'),
+                    what_investor_does = jstring('what_i_do'), online_bio_url = jstring('online_bio_url'),
+                    resume_url = jstring('resume_url'),follower_count = jnumber('follower_count'))%>%
+      enter_object('locations')%>%
+      gather_array%>%
+      spread_values(investor_location = jstring('display_name'), investor_location_id = jnumber('id'))
+
+    part2 <- temp_json%>%
+      enter_object('users')%>%
+      gather_array%>%
+      spread_values(investor_name = jstring('name'), investor_id= jnumber('id'),investor_bio = jstring('bio'),
+                    github_url = jstring('github_url'), what_ive_built = jstring('what_ive_built'),
+                    what_investor_does = jstring('what_i_do'), online_bio_url = jstring('online_bio_url'),
+                    resume_url = jstring('resume_url'),follower_count = jnumber('follower_count'))%>%
+      enter_object('roles')%>%
+      gather_array%>%
+      spread_values(investor_role = jstring('display_name'), inv_role_id = jnumber('id'))
+    
+    part3 <- temp_json%>%
+      enter_object('users')%>%
+      gather_array%>%
+      spread_values(investor_name = jstring('name'), investor_id = jnumber('id'),investor_bio = jstring('bio'),
+                    github_url = jstring('github_url'), what_ive_built = jstring('what_ive_built'),
+                    what_investor_does = jstring('what_i_do'), online_bio_url = jstring('online_bio_url'),
+                    resume_url = jstring('resume_url'),follower_count = jnumber('follower_count'),
+                    investor_facebook = jstring('facebook_url'), investor_twitter = jstring('twitter_url'))%>%
+      enter_object('skills')%>%
+      gather_array%>%
+      spread_values(investor_skill = jstring('display_name'), invest_skill_id = jnumber('id'))
+
+
+    output_part1 <- right_join(part1, part2, by = c('investor_id','investor_name'))
+    output_part2 <- right_join(output_part1, part3, by = c('investor_id','investor_name'))
+    
+
+    final_output <- output_part2%>%
+      select(investor_name, investor_id, investor_bio, what_ive_built,what_investor_does,online_bio_url, resume_url, 
+            follower_count, investor_location,
+            investor_location_id, investor_role, inv_role_id,investor_skill, invest_skill_id,github_url, investor_facebook,
+            investor_twitter)
+    
+    investor_data_frame <- rbind(investor_data_frame,final_output)
+   }
+  }
+  return (investor_data_frame)
+}     
+
+full_investor <- investor_transformation()
+
+#test_investors <-investor_transformation()
+
+write.csv(full_investor, "investors_20_cities.csv")
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
